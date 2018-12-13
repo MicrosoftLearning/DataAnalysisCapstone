@@ -1,0 +1,284 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" type="application/javascript"></script>
+<p><strong>Based on aspects of building location and construction, your goal is to predict the level of damage to buildings caused by the 2015 Gorkha earthquake in Nepal.</strong></p>
+<p>The problem is described in more detail in the following sections:</p>
+<ul class="incremental">
+<li><a href="#about-the-data">About the data</a></li>
+<li><a href="#target-variable">Target Variable</a>
+<ul class="incremental">
+<li><a href="#submission-format">Submission Format</a></li>
+<li><a href="#performance-metric">Performance Metric</a></li>
+</ul></li>
+<li><a href="#features">Features</a>
+<ul class="incremental">
+<li><a href="#description">Description</a></li>
+<li><a href="#example-row">Example Row</a></li>
+</ul></li>
+</ul>
+<p><a id="about-the-data"></a></p>
+<h2 id="about-the-data">About the data</h2>
+<p>The data was collected through surveys by the Central Bureau of Statistics that work under the National Planning Commission Secretariat of Nepal. This survey is <em>one of the largest post-disaster datasets ever collected</em>, containing valuable information on earthquake impacts, household conditions, and socio-economic-demographic statistics.</p>
+<p><a id="target-variable"></a></p>
+<h2 id="target-variable">Target variable</h2>
+<p>We're trying to predict the <a href="https://www.ma.utexas.edu/users/mks/statmistakes/ordinal.html">ordinal variable</a> <code>damage_grade</code>, which represents a level of damage to the building that was hit by the earthquake. There are 3 grades of the damage:</p>
+<ul class="incremental">
+<li><code>1</code> represents low damage</li>
+<li><code>2</code> represents a medium amount of damage</li>
+<li><code>3</code> represents almost complete destruction</li>
+</ul>
+<p><a id="submission-format"></a></p>
+<h3 id="submission-format">Submission format</h3>
+<p>The format for the submission file is two columns with the <code>building_id</code> and the <code>damage_grade</code>. The data type of <code>damage_grade</code> is an integer with values of <span class="math inline">1, 2, 3</span>, <strong>so make sure there is no decimal point and no other numbers in your submission</strong>. For example <code>1</code> would be valid, and <code>1.0</code> would <strong>not</strong>.</p>
+<p>For example, if you predicted:</p>
+<table>
+<thead>
+<tr class="header">
+<th>building_id</th>
+<th>damage_grade</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>11456</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td>16528</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td>3253</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td>18614</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td>1544</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p>The first few lines of the <code>.csv</code> file that you submit would look like:</p>
+<pre><code>building_id,damage_grade
+11456,1
+16528,1
+3253,1
+18614,1
+1544,1</code></pre>
+<p><a id="performance-metric"></a></p>
+<h3 id="performance-metric">Performance metric</h3>
+<p>As we're predicting a level of damage, which is an ordinal variable (variable where only relative ordering is important), this is an ordinal regression problem - it is sometimes described as an intermediate problem between classification and regression. To measure the performance of our algorithms, we'll use a metric called logistic loss (or &quot;log loss&quot;).</p>
+<p>Log loss is a measure of error, so a lower value is better (as opposed to an accuracy metric, where a higher value is better). Log loss penalizes predictions that are <em>confidently wrong</em> (assigning high probability to an incorrect label). Logistic loss can be calculated as follows:</p>
+<p><br /><span class="math display">$$loss = -\frac{1}{N}\cdot\sum\limits_{i=1}^{N}\sum\limits_{j=1}^{M} y_{ij}\log p_{ij}$$</span><br /></p>
+<p>where N is the number of observations, M number of classes (in terms of our problem M=3), <span class="math inline"><em>y</em><sub><em>i</em><em>j</em></sub></span> is a binary variable indicating if classification for observation <span class="math inline"><em>i</em></span> was correct, and <span class="math inline"><em>p</em><sub><em>i</em><em>j</em></sub></span> is the probability of assigning label <span class="math inline"><em>j</em></span> to observation <span class="math inline"><em>i</em></span>. The best possible score for logistic loss is 0. In Python, you can easily calculate logistic loss using <code>sklearn.metrics.log_loss</code>.</p>
+<p><strong>Note:</strong> Your class predictions in each row should sum to 1, but if they don't then they will first be normalized such that they do add up to 1. To prevent infinite loss values stemming from <span class="math inline"><em>p</em> = 0</span>, a small epsilon is added to your probability predictions before the metric is applied.</p>
+<p><a id="features"></a></p>
+<h2 id="features">Features</h2>
+<p>The dataset mainly consists of information on the buildings' structure and their legal ownership. Each row in the dataset represents a specific building in the region that was hit by Gorkha earthquake.</p>
+<p>There are 39 columns in this dataset, where the <code>building_id</code> column is a unique and random identifier. The remaining 38 features are described in the section below.</p>
+<p><a id="description"></a></p>
+<h3 id="description">Description</h3>
+<ul class="incremental">
+<li><code>geo_level_1_id</code>, <code>geo_level_2_id</code>, <code>geo_level_3_id</code> (type: categorical): geographic region in which building exists, from largest (level 1) to most specific sub-region (level 3).</li>
+<li><code>count_floors_pre_eq</code> (type: int): number of floors in the building before the earthquake.</li>
+<li><code>age_building</code> (type: int): age of the building.</li>
+<li><code>plinth_area_sq_ft_percentage</code> (type: float): plinth area of the building described as the percentage of all buildings' areas.</li>
+<li><code>height_ft_pre_eq_percentage</code> (type: float): height of the building described as the percentage of all buildings' heights.</li>
+<li><code>land_surface_condition</code> (type: categorical): surface condition of the land where the building was built. Possible values: d502, 808e, 2f15.</li>
+<li><code>foundation_type</code> (type: categorical): type of foundation used while building. Possible values: 337f, 858b, 6c3e, 467b, bb5f.</li>
+<li><code>roof_type</code> (type: categorical): type of roof used while building. Possible values: 7e76, e0e2, 67f9.</li>
+<li><code>ground_floor_type</code> (type: categorical): type of the ground floor. Possible values: b1b4, b440, 467b, e26c, bb5f.</li>
+<li><code>other_floor_type</code> (type: categorical): type of constructions used in higher than the ground floors (except of roof). Possible values: f962, 9eb0, 441a, 67f9.</li>
+<li><code>position</code> (type: categorical): position of the building. Possible values: 3356, bfba, bcab, 1787.</li>
+<li><code>plan_configuration</code> (type: categorical): building plan configuration. Possible values: a779, 84cf, 8e3f, d2d9, 3fee, 6e81, 0448, 1442, cb88.</li>
+<li><code>has_superstructure_adobe_mud</code> (type: binary): flag variable that indicates if the superstructure was made of Adobe/Mud.</li>
+<li><code>has_superstructure_mud_mortar_stone</code> (type: binary): flag variable that indicates if the superstructure was made of Mud Mortar - Stone.</li>
+<li><code>has_superstructure_stone_flag</code> (type: binary): flag variable that indicates if the superstructure was made of Stone.</li>
+<li><code>has_superstructure_cement_mortar_stone</code> (type: binary): flag variable that indicates if the superstructure was made of Cement Mortar - Stone.</li>
+<li><code>has_superstructure_mud_mortar_brick</code> (type: binary): flag variable that indicates if the superstructure was made of Mud Mortar - Brick.</li>
+<li><code>has_superstructure_cement_mortar_brick</code> (type: binary): flag variable that indicates if the superstructure was made of Cement Mortar - Brick.</li>
+<li><code>has_superstructure_timber</code> (type: binary): flag variable that indicates if the superstructure was made of Timber.</li>
+<li><code>has_superstructure_bamboo</code> (type: binary): flag variable that indicates if the superstructure was made of Bamboo.</li>
+<li><code>has_superstructure_rc_non_engineered</code> (type: binary): flag variable that indicates if the superstructure was made of non-engineered reinforced concrete.</li>
+<li><code>has_superstructure_rc_engineered</code> (type: binary): flag variable that indicates if the superstructure was made of engineered reinforced concrete.</li>
+<li><code>has_superstructure_other</code> (type: binary): flag variable that indicates if the superstructure was made of any other material.</li>
+<li><code>legal_ownership_status</code> (type: categorical): legal ownership status of the land where building was built. Possible values: c8e1, cae1, ab03, bb5f.</li>
+<li><code>count_families</code> (type: float): number of families that live in the building.</li>
+<li><code>has_secondary_use</code> (type: binary): flag variable that indicates if the building was used for any secondary purpose.</li>
+<li><code>has_secondary_use_agriculture</code> (type: binary): flag variable that indicates if the building was used for agricultural purposes.</li>
+<li><code>has_secondary_use_hotel</code> (type: binary): flag variable that indicates if the building was used as a hotel.</li>
+<li><code>has_secondary_use_rental</code> (type: binary): flag variable that indicates if the building was used for rental purposes.</li>
+<li><code>has_secondary_use_institution</code> (type: binary): flag variable that indicates if the building was used as a location of any institution.</li>
+<li><code>has_secondary_use_school</code> (type: binary): flag variable that indicates if the building was used as a school.</li>
+<li><code>has_secondary_use_industry</code> (type: binary): flag variable that indicates if the building was used for industrial purposes.</li>
+<li><code>has_secondary_use_health_post</code> (type: binary): flag variable that indicates if the building was used as a health post.</li>
+<li><code>has_secondary_use_gov_office</code> (type: binary): flag variable that indicates if the building was used fas a government office.</li>
+<li><code>has_secondary_use_use_police</code> (type: binary): flag variable that indicates if the building was used as a police station.</li>
+<li><code>has_secondary_use_other</code> (type: binary): flag variable that indicates if the building was secondarily used for other purposes.</li>
+</ul>
+<p><a id="example-row"></a></p>
+<h3 id="example-row">Example row</h3>
+<p>Here's an example of one of the rows in the dataset so that you can see the kinds of values you might expect in the dataset. Some are numeric, some are categorical, and there are often missing values.</p>
+<table>
+<thead>
+<tr class="header">
+<th>field</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>geo_level_1_id</td>
+<td>8</td>
+</tr>
+<tr class="even">
+<td>geo_level_2_id</td>
+<td>501</td>
+</tr>
+<tr class="odd">
+<td>geo_level_3_id</td>
+<td>3237</td>
+</tr>
+<tr class="even">
+<td>count_floors_pre_eq</td>
+<td>2</td>
+</tr>
+<tr class="odd">
+<td>age_building</td>
+<td>25</td>
+</tr>
+<tr class="even">
+<td>plinth_area_sq_ft_percentage</td>
+<td>6.9</td>
+</tr>
+<tr class="odd">
+<td>height_ft_pre_eq_percentage</td>
+<td>3.33</td>
+</tr>
+<tr class="even">
+<td>land_surface_condition</td>
+<td>d502</td>
+</tr>
+<tr class="odd">
+<td>foundation_type</td>
+<td>337f</td>
+</tr>
+<tr class="even">
+<td>roof_type</td>
+<td>7e76</td>
+</tr>
+<tr class="odd">
+<td>ground_floor_type</td>
+<td>b1b4</td>
+</tr>
+<tr class="even">
+<td>other_floor_type</td>
+<td>f962</td>
+</tr>
+<tr class="odd">
+<td>position</td>
+<td>3356</td>
+</tr>
+<tr class="even">
+<td>plan_configuration</td>
+<td>a779</td>
+</tr>
+<tr class="odd">
+<td>has_superstructure_adobe_mud</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>has_superstructure_mud_mortar_stone</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td>has_superstructure_stone_flag</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>has_superstructure_cement_mortar_stone</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>has_superstructure_mud_mortar_brick</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>has_superstructure_cement_mortar_brick</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>has_superstructure_timber</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>has_superstructure_bamboo</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>has_superstructure_rc_non_engineered</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>has_superstructure_rc_engineered</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>has_superstructure_other</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>legal_ownership_status</td>
+<td>c8e1</td>
+</tr>
+<tr class="odd">
+<td>count_families</td>
+<td>1.0</td>
+</tr>
+<tr class="even">
+<td>has_secondary_use</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>has_secondary_use_agriculture</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>has_secondary_use_hotel</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>has_secondary_use_rental</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>has_secondary_use_institution</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>has_secondary_use_school</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>has_secondary_use_industry</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>has_secondary_use_health_post</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>has_secondary_use_gov_office</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>has_secondary_use_use_police</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>has_secondary_use_other</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
